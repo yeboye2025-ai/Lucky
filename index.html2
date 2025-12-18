@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucky Day | AI 灵视版</title>
+    
+    <!-- 资源引入 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        m: {
+                            bg: "#F7F5F2", card: "rgba(255,255,255,0.65)",
+                            gold: "#D4AF37", wood: "#A3BFA8", water: "#AECFE0", fire: "#E6B8B8", earth: "#E0C8BA"
+                        },
+                        nari: { black: "#2B2B2B", silver: "#E5E5E5", pink: "#FFB7B2" }
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif SC"', 'serif'],
+                        cute: ['"ZCOOL KuaiLe"', 'cursive'],
+                    },
+                    animation: {
+                        'float': 'float 5s ease-in-out infinite',
+                        'blink': 'blink 4s infinite',
+                        'scan': 'scan 2s linear infinite',
+                        'pop': 'pop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } },
+                        blink: { '0%, 96%, 100%': { transform: 'scaleY(1)' }, '98%': { transform: 'scaleY(0.1)' } },
+                        scan: { '0%': { top: '0%' }, '50%': { top: '100%' }, '100%': { top: '0%' } },
+                        pop: { '0%': { opacity: 0, transform: 'scale(0.95)' }, '100%': { opacity: 1, transform: 'scale(1)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #F7F5F2; overflow: hidden; -webkit-font-smoothing: antialiased; }
+        .glass { background: rgba(255,255,255,0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.8); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.03); }
+        .input-glass { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s; }
+        .input-glass:focus { background: white; border-color: #D4AF37; }
+        
+        /* 扫描线特效 */
+        .scan-line {
+            position: absolute; width: 100%; height: 2px;
+            background: linear-gradient(to right, transparent, #FFB7B2, transparent);
+            box-shadow: 0 0 10px #FFB7B2;
+            z-index: 10;
+        }
+        
+        /* 摄像头取景框 */
+        .camera-overlay {
+            background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.3) 100%);
+        }
+
+        /* 隐藏滚动条 */
+        ::-webkit-scrollbar { display: none; }
+        
+        /* 雪纳瑞折耳修正 */
+        .ear-l { border-top: 35px solid #E5E5E5; border-left: 20px solid transparent; border-right: 20px solid transparent; transform: rotate(-20deg); border-radius: 8px; }
+        .ear-r { border-top: 35px solid #E5E5E5; border-left: 20px solid transparent; border-right: 20px solid transparent; transform: rotate(20deg); border-radius: 8px; }
+    </style>
+</head>
+<body class="text-gray-700 font-serif">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- 🔮 算法库 (BaZi Logic) ---
+        const HEAVENLY_STEMS = {
+            0: { name: "庚金", element: "金", color: "m-gold", lack: "木", advice: "气场略显锋利，建议佩戴木质饰品柔和磁场" },
+            1: { name: "辛金", element: "金", color: "m-gold", lack: "木", advice: "面带贵气但易疲劳，多接触绿色植物" },
+            2: { name: "壬水", element: "水", color: "m-water", lack: "火", advice: "眼中有神采，但面色偏冷，建议红衣提气" },
+            3: { name: "癸水", element: "水", color: "m-water", lack: "火", advice: "气质内敛，需要暖色调饰品激发活力" },
+            4: { name: "甲木", element: "木", color: "m-wood", lack: "土", advice: "生机勃勃，但根基未稳，适合佩戴黄玉" },
+            5: { name: "乙木", element: "木", color: "m-wood", lack: "土", advice: "柔韧有余，需增强定力，推荐陶瓷饰品" },
+            6: { name: "丙火", element: "火", color: "m-fire", lack: "金", advice: "印堂发亮，能量充足，可用银饰平衡" },
+            7: { name: "丁火", element: "火", color: "m-fire", lack: "金", advice: "眼神温和，但容易虚耗，金饰可聚财" },
+            8: { name: "戊土", element: "土", color: "m-earth", lack: "水", advice: "面相敦厚，稍显凝滞，需水元素灵动" },
+            9: { name: "己土", element: "土", color: "m-earth", lack: "水", advice: "包容力强，建议佩戴黑曜石提升流通" }
+        };
+
+        function calculateBaZi(dateStr) {
+            const date = new Date(dateStr);
+            const yearStr = date.getFullYear().toString();
+            const lastDigit = parseInt(yearStr.charAt(yearStr.length - 1));
+            const stem = HEAVENLY_STEMS[lastDigit];
+            
+            // 模拟紫微
+            const stars = ["紫微星", "天机星", "太阳星", "武曲星", "天同星", "廉贞星"];
+            const star = stars[(date.getDate() + date.getMonth()) % stars.length];
+
+            return { ...stem, star, year: date.getFullYear() };
+        }
+
+        function generateKLineData(seed) {
+            return Array.from({length: 12}, (_, i) => 40 + Math.sin(i + seed) * 30 + Math.random() * 20);
+        }
+
+        // --- 🐶 Nari 3.0 (折耳版) ---
+        const Nari = ({ state = 'idle', size = 'md' }) => {
+            const px = size === 'lg' ? 140 : (size === 'sm' ? 60 : 100);
+            return (
+                <div className="relative animate-float z-10" style={{ width: px, height: px }}>
+                    {/* 头 */}
+                    <div className="absolute top-[20%] left-[10%] w-[80%] h-[70%] bg-nari-black rounded-[35%] shadow-xl flex flex-col items-center overflow-hidden z-20">
+                        <div className="flex gap-3 mt-4 z-30">
+                            <div className="w-6 h-2 bg-nari-silver rounded-full rotate-12"></div>
+                            <div className="w-6 h-2 bg-nari-silver rounded-full -rotate-12"></div>
+                        </div>
+                        <div className="flex gap-5 mt-2 z-30 animate-blink">
+                             {state === 'happy' ? (
+                                <><div className="text-white text-lg">^</div><div className="text-white text-lg">^</div></>
+                             ) : (
+                                <><div className="w-2.5 h-2.5 bg-white rounded-full"></div><div className="w-2.5 h-2.5 bg-white rounded-full"></div></>
+                             )}
+                        </div>
+                        <div className="w-4 h-3 bg-black rounded-[40%] mt-1 z-30"></div>
+                        <div className="absolute bottom-[-15%] w-[90%] h-[60%] bg-nari-silver rounded-[45%] z-20"></div>
+                    </div>
+                    {/* 耳朵 */}
+                    <div className="absolute top-[18%] left-[0%] w-0 h-0 ear-l z-30"></div>
+                    <div className="absolute top-[18%] right-[0%] w-0 h-0 ear-r z-30"></div>
+                    {/* 特效 */}
+                    {state === 'scanning' && <div className="absolute top-[30%] left-[25%] w-[50%] h-[20%] bg-nari-pink/50 blur-md animate-pulse z-40"></div>}
+                </div>
+            );
+        };
+
+        // --- 📸 页面: AI 灵视扫描 (Vision Scan) ---
+        const VisionView = ({ onComplete }) => {
+            const [scanning, setScanning] = useState(false);
+            const [text, setText] = useState("准备启动灵视...");
+            const videoRef = useRef(null);
+            const [hasCamera, setHasCamera] = useState(true);
+
+            useEffect(() => {
+                startCamera();
+                return () => stopCamera();
+            }, []);
+
+            const startCamera = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                    if (videoRef.current) videoRef.current.srcObject = stream;
+                    setText("请将面部/手部对准框内");
+                } catch (err) {
+                    console.log("Camera access failed, using simulation mode");
+                    setHasCamera(false);
+                    setText("启用模拟能量场扫描...");
+                }
+            };
+
+            const stopCamera = () => {
+                if (videoRef.current && videoRef.current.srcObject) {
+                    videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+                }
+            };
+
+            const handleScan = () => {
+                setScanning(true);
+                setText("正在分析五行气场...");
+                // 模拟扫描过程 3秒
+                setTimeout(() => setText("检测到微弱能量波动..."), 1000);
+                setTimeout(() => setText("正在同步宇宙坐标..."), 2000);
+                setTimeout(() => {
+                    stopCamera();
+                    onComplete();
+                }, 3000);
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-black relative overflow-hidden animate-pop">
+                    {/* 摄像头/模拟层 */}
+                    <div className="flex-1 relative overflow-hidden">
+                        {hasCamera ? (
+                            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-80"></video>
+                        ) : (
+                            <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                                <div className="w-64 h-64 rounded-full border-2 border-nari-pink/30 animate-pulse flex items-center justify-center">
+                                    <div className="w-48 h-48 rounded-full border border-nari-pink/50"></div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 扫描UI覆盖层 */}
+                        <div className="absolute inset-0 camera-overlay pointer-events-none"></div>
+                        <div className="absolute inset-10 border-2 border-white/20 rounded-3xl pointer-events-none">
+                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-nari-pink rounded-tl-xl"></div>
+                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-nari-pink rounded-tr-xl"></div>
+                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-nari-pink rounded-bl-xl"></div>
+                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-nari-pink rounded-br-xl"></div>
+                            
+                            {/* 扫描线 */}
+                            {scanning && <div className="scan-line animate-scan"></div>}
+                        </div>
+
+                        {/* 状态文字 */}
+                        <div className="absolute top-20 w-full text-center">
+                            <p className="text-nari-pink font-cute text-xl shadow-black drop-shadow-md">{text}</p>
+                        </div>
+                    </div>
+
+                    {/* 操作栏 */}
+                    <div className="bg-white p-6 rounded-t-3xl flex flex-col items-center gap-4 z-20">
+                        <div className="flex items-center gap-4 mb-2">
+                            <Nari state={scanning ? 'scanning' : 'idle'} size="sm" />
+                            <div className="text-sm text-gray-500">
+                                {scanning ? "Nari 正在连接..." : "Nari 已准备就绪"}
+                            </div>
+                        </div>
+                        <button 
+                            onClick={handleScan} 
+                            disabled={scanning}
+                            className={`w-20 h-20 rounded-full border-4 border-gray-200 flex items-center justify-center transition-all ${scanning ? 'scale-90 bg-gray-100' : 'scale-100 bg-nari-pink'}`}
+                        >
+                            <div className="w-16 h-16 rounded-full bg-white/20"></div>
+                        </button>
+                        <p className="text-xs text-gray-400">点击按钮开启 AI 灵视</p>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 📄 页面: 输入 (Input) ---
+        const InputView = ({ onNext }) => {
+            const [form, setForm] = useState({ name: '', date: '', time: '', city: '' });
+            return (
+                <div className="h-full flex flex-col items-center justify-center p-8 animate-pop">
+                    <div className="mb-4"><Nari state="idle" size="lg" /></div>
+                    <h1 className="text-3xl font-cute text-gray-800 mb-2">Lucky Day</h1>
+                    <p className="text-xs text-gray-500 mb-8 tracking-widest">AI 视觉 + 周易能量测算</p>
+                    <div className="w-full glass p-6 flex flex-col gap-3">
+                        <input type="text" placeholder="你的名字" className="p-3 rounded-xl input-glass text-center text-sm" onChange={e => setForm({...form, name: e.target.value})} />
+                        <div className="flex gap-2">
+                            <input type="date" className="flex-1 p-3 rounded-xl input-glass text-center text-gray-500 text-sm" onChange={e => setForm({...form, date: e.target.value})} />
+                        </div>
+                        <div className="flex gap-2">
+                            <input type="time" className="flex-1 p-3 rounded-xl input-glass text-center text-gray-500 text-sm" onChange={e => setForm({...form, time: e.target.value})} />
+                            <input type="text" placeholder="所在城市" className="flex-1 p-3 rounded-xl input-glass text-center text-sm" onChange={e => setForm({...form, city: e.target.value})} />
+                        </div>
+                        <button onClick={() => form.name && form.date && onNext(form)} className="mt-4 py-3.5 bg-nari-black text-white rounded-xl font-serif tracking-widest shadow-lg active:scale-95 transition-all">
+                            下一步：AI 灵视
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 📄 页面: 画像 (Profile) ---
+        const ProfileView = ({ user, bazi, setView }) => {
+            return (
+                <div className="h-full pt-10 px-6 pb-6 flex flex-col animate-pop overflow-y-auto">
+                    <div className="flex justify-between items-end mb-6">
+                        <div><h2 className="text-2xl font-serif font-bold text-gray-800">{user.name}</h2><p className="text-xs text-gray-500 mt-1">灵视分析完成 · {bazi.year}</p></div>
+                        <Nari state="happy" size="sm" />
+                    </div>
+                    <div className={`glass p-6 mb-6 relative overflow-hidden bg-${bazi.color}/10 border-l-4 border-${bazi.color}`}>
+                        <div className="text-center mb-4">
+                            <span className="inline-block px-3 py-1 bg-white/60 rounded-full text-[10px] text-gray-500 mb-2">AI 视觉鉴定</span>
+                            <h3 className="text-2xl font-cute text-gray-800">{bazi.star} 坐命</h3>
+                        </div>
+                        <div className="bg-white/60 rounded-xl p-4 text-center">
+                            <p className="font-serif font-bold text-nari-black mb-1">“{bazi.advice}”</p>
+                            <p className="text-[10px] text-gray-400">基于五行 {bazi.element} 与面相气场分析</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mt-auto">
+                        <button onClick={() => setView('daily')} className="glass p-5 active:scale-95 transition group">
+                            <div className="w-10 h-10 rounded-full bg-m-gold/20 flex items-center justify-center mb-3 text-xl">📈</div>
+                            <p className="font-serif font-bold text-gray-700">K线人生</p>
+                            <p className="text-[10px] text-gray-400 mt-1">能量走势图</p>
+                        </button>
+                        <button onClick={() => setView('match')} className="glass p-5 active:scale-95 transition group">
+                            <div className="w-10 h-10 rounded-full bg-m-fire/20 flex items-center justify-center mb-3 text-xl">💞</div>
+                            <p className="font-serif font-bold text-gray-700">合拍雷达</p>
+                            <p className="text-[10px] text-gray-400 mt-1">缘分检测</p>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 📄 页面: 运势 (Daily K-Line) ---
+        const DailyView = ({ bazi, setView }) => {
+            const kData = useMemo(() => generateKLineData(new Date().getDate()), []);
+            const points = kData.map((val, i) => `${i * 25},${100 - val}`).join(" ");
+            
+            return (
+                <div className="h-full pt-8 px-6 pb-6 flex flex-col animate-pop">
+                    <button onClick={() => setView('profile')} className="text-sm text-gray-400 mb-4 flex items-center gap-1"><LucideIcon name="arrow-left" size={16} /> 返回</button>
+                    <div className="text-center mb-4"><h2 className="text-xl font-serif text-gray-800">今日能量 K 线</h2></div>
+                    <div className="glass p-6 mb-4 relative">
+                        <div className="h-32 w-full flex items-end justify-center overflow-hidden">
+                             <svg viewBox="0 0 275 100" className="w-full h-full overflow-visible">
+                                <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#D4AF37" stopOpacity="0.5" /><stop offset="100%" stopColor="#D4AF37" stopOpacity="0" /></linearGradient></defs>
+                                <polyline fill="none" stroke="#D4AF37" strokeWidth="3" points={points} />
+                                <polygon fill="url(#grad)" points={`0,100 ${points} 275,100`} opacity="0.5"/>
+                                <circle cx="125" cy={100 - kData[5]} r="4" fill="#333" />
+                             </svg>
+                        </div>
+                        <div className="absolute top-4 right-4 text-xs font-bold text-m-gold">当前: 持有</div>
+                    </div>
+                    <div className="glass p-6 flex-1 flex flex-col items-center text-center">
+                        <Nari state="thinking" size="sm" />
+                        <p className="text-gray-600 text-sm leading-relaxed font-serif opacity-90 mt-4">“今日K线震荡上行，气场稳定。适合长线布局，不宜频繁操作。”</p>
+                        <div className="w-full grid grid-cols-3 gap-2 border-t border-gray-200 pt-4 mt-6">
+                            <div><p className="text-[10px] text-gray-400">幸运色</p><div className={`w-4 h-4 rounded-full bg-${bazi.color} mx-auto mt-1`}></div></div>
+                            <div><p className="text-[10px] text-gray-400">吉时</p><p className="text-sm font-bold text-gray-700 mt-1">未时</p></div>
+                            <div><p className="text-[10px] text-gray-400">建议</p><p className="text-sm font-bold text-gray-700 mt-1">补{bazi.lack}</p></div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 📄 页面: 合拍 (Match) ---
+        const MatchView = ({ setView }) => {
+            const [res, setRes] = useState(null);
+            return (
+                <div className="h-full pt-8 px-6 animate-pop">
+                    <button onClick={() => setView('profile')} className="text-sm text-gray-400 mb-6 flex items-center gap-1"><LucideIcon name="arrow-left" size={16} /> 返回</button>
+                    <h2 className="text-2xl font-serif text-center text-gray-800 mb-8">合拍雷达</h2>
+                    {!res ? (
+                        <div className="glass p-8 flex flex-col gap-6">
+                            <div className="flex justify-center items-center gap-4"><div className="w-12 h-12 rounded-full bg-nari-black text-white flex items-center justify-center font-bold">我</div><LucideIcon name="scan-line" size={20} color="#FFB7B2" /><div className="w-12 h-12 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold">?</div></div>
+                            <input type="text" placeholder="对方名字" className="p-3 rounded-xl input-glass text-center text-sm" />
+                            <button onClick={() => setRes({score:96})} className="py-3 bg-nari-pink text-white rounded-xl font-serif shadow-lg">启动雷达</button>
+                        </div>
+                    ) : (
+                        <div className="glass p-8 text-center animate-pop">
+                            <div className="flex justify-center -space-x-4 mb-6"><Nari state="happy" size="sm" /><div className="transform scale-x-[-1] opacity-80"><Nari state="happy" size="sm" /></div></div>
+                            <h3 className="text-5xl font-cute text-nari-pink mb-2">{res.score}%</h3>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-8">你们的K线走势高度一致，是能够互相滋养的长期合作伙伴。</p>
+                            <button onClick={() => setRes(null)} className="text-xs text-gray-400 underline">再测一个</button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const LucideIcon = ({ name, size }) => { useEffect(() => lucide.createIcons(), []); return <i data-lucide={name} style={{ width: size, height: size }}></i>; };
+
+        const App = () => {
+            const [view, setView] = useState('input');
+            const [user, setUser] = useState(null);
+            const [bazi, setBazi] = useState(null);
+
+            const handleInputNext = (form) => {
+                setUser(form);
+                setBazi(calculateBaZi(form.date));
+                setView('vision'); // 跳转到扫描
+            };
+
+            const handleVisionComplete = () => {
+                setView('profile'); // 扫描完去画像
+            };
+
+            return (
+                <div className="w-full h-screen bg-m-bg relative overflow-hidden flex justify-center">
+                    <div className="absolute top-[-150px] left-[-150px] w-[400px] h-[400px] bg-m-gold/10 rounded-full blur-[80px] animate-float"></div>
+                    <div className="absolute bottom-[-100px] right-[-100px] w-[300px] h-[300px] bg-m-wood/20 rounded-full blur-[60px] animate-float" style={{animationDelay:'2s'}}></div>
+                    
+                    <div className="w-full max-w-md h-full relative z-10 shadow-2xl bg-white/30 backdrop-blur-sm overflow-hidden">
+                        {view === 'input' && <InputView onNext={handleInputNext} />}
+                        {view === 'vision' && <VisionView onComplete={handleVisionComplete} />}
+                        {view === 'profile' && <ProfileView user={user} bazi={bazi} setView={setView} />}
+                        {view === 'daily' && <DailyView bazi={bazi} setView={setView} />}
+                        {view === 'match' && <MatchView setView={setView} />}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
