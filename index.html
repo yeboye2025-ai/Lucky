@@ -3,361 +3,448 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lucky Day | Web3 情绪疗愈</title>
+    <title>Lucky Day | 你的宇宙能量站</title>
     
-    <!-- 1. 引入必要的 CDN 资源 -->
-    <!-- 字体 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS -->
+    <!-- 资源引入 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React 全家桶 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- 图标库 -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- 2. 配置 Tailwind 主题 (莫兰迪色系) -->
+    <!-- 莫兰迪色系 & 动画配置 -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        morandi: {
-                            mist: "#E0E5DF", clay: "#E6DCCA", sage: "#BCE2D1",
-                            haze: "#B0C4DE", dusty: "#D8BFD8", oat: "#F5DEB3", shell: "#FFF5EE"
+                        m: { // Morandi Short
+                            pink: "#EEDEB0", // 杏仁
+                            green: "#B8C8B7", // 豆绿
+                            blue: "#A4B0BE", // 雾蓝
+                            purple: "#D8BFD8", // 藕荷
+                            clay: "#E0C8BA", // 陶土
+                            bg: "#F7F5F2", // 暖白背景
                         },
                         nari: {
-                            black: "#2D2D2D", silver: "#E5E7EB", sparkle: "#FCD34D"
+                            black: "#333333",
+                            silver: "#E0E0E0",
+                            accent: "#FFB7B2" // 腮红
                         }
                     },
                     fontFamily: {
                         serif: ['"Noto Serif SC"', 'serif'],
+                        cute: ['"ZCOOL KuaiLe"', 'cursive'], // 增加可爱字体
                     },
                     animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'breathe': 'breathe 4s ease-in-out infinite',
-                        'blob': 'blob 10s infinite',
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'float': 'float 4s ease-in-out infinite',
+                        'blink': 'blink 4s infinite',
+                        'wiggle': 'wiggle 2s ease-in-out infinite',
+                        'pop': 'pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
                     },
                     keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        breathe: {
-                            '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
-                            '50%': { transform: 'scale(1.05)', opacity: '1' },
-                        },
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' }
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+                        blink: { '0%, 96%, 100%': { transform: 'scaleY(1)' }, '98%': { transform: 'scaleY(0.1)' } },
+                        wiggle: { '0%, 100%': { transform: 'rotate(-3deg)' }, '50%': { transform: 'rotate(3deg)' } },
+                        pop: { '0%': { opacity: 0, transform: 'scale(0.8)' }, '100%': { opacity: 1, transform: 'scale(1)' } }
                     }
                 }
             }
         }
     </script>
-
     <style>
-        body { margin: 0; overflow: hidden; -webkit-font-smoothing: antialiased; }
-        /* 毛玻璃卡片样式 */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-        }
-        /* Nari 绘图辅助 */
-        .nari-head { border-radius: 40% 40% 45% 45%; }
-        .nari-eyebrow { border-radius: 999px; }
-        /* 隐藏滚动条 */
-        ::-webkit-scrollbar { display: none; }
+        body { margin: 0; background: #F7F5F2; overflow: hidden; }
+        .glass { background: rgba(255,255,255,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.8); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); }
+        .input-glass { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); }
+        
+        /* Nari 2.0 绘图 CSS */
+        .nari-ear-l { border-radius: 50% 50% 0 50%; transform: rotate(-10deg); }
+        .nari-ear-r { border-radius: 50% 50% 50% 0; transform: rotate(10deg); }
+        .nari-mustache { border-radius: 40px 40px 50% 50%; }
     </style>
 </head>
-<body class="bg-morandi-mist text-gray-700 font-serif selection:bg-morandi-haze selection:text-white">
+<body class="text-gray-700 font-serif antialiased">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
 
-        // --- 1. 核心逻辑: 五行能量算法 ---
-        const ELEMENT_CONFIG = {
-            0: { type: 'Metal', color: 'bg-morandi-mist', hex: '#E0E5DF', vibe: '秩序', advice: '今日世界纷扰，但你内心如金属般有序。适合做减法，清理杂念。' },
-            1: { type: 'Water', color: 'bg-morandi-haze', hex: '#B0C4DE', vibe: '流动', advice: '上善若水。今日适合在变化中寻找机会，不要对抗，要包容。' },
-            2: { type: 'Wood', color: 'bg-morandi-sage', hex: '#BCE2D1', vibe: '生长', advice: '生机勃勃的一天。像树木一样扎根当下，向上伸展你的想法。' },
-            3: { type: 'Fire', color: 'bg-morandi-dusty', hex: '#D8BFD8', vibe: '热情', advice: '你就是微光。今日你的直觉极准，跟随内心的火花行动吧。' },
-            4: { type: 'Earth', color: 'bg-morandi-oat', hex: '#F5DEB3', vibe: '承托', advice: '大地般稳重。别急着冲刺，今天适合复盘和积累。' }
+        // --- 🔮 逻辑核心: 紫微/星座/五行计算模拟 ---
+        
+        const ZODIAC_SIGNS = [
+            "摩羯座", "水瓶座", "双鱼座", "白羊座", "金牛座", "双子座",
+            "巨蟹座", "狮子座", "处女座", "天秤座", "天蝎座", "射手座"
+        ];
+        
+        const MBTI_TYPES = [
+            "INFJ", "INFP", "ENFJ", "ENFP", "INTJ", "INTP", "ENTJ", "ENTP",
+            "ISFJ", "ISFP", "ESFJ", "ESFP", "ISTJ", "ISTP", "ESTJ", "ESTP"
+        ];
+
+        // 五行饰品映射
+        const ELEMENT_ITEMS = {
+            "金": { item: "银饰/白水晶", color: "m-blue", desc: "补金" },
+            "木": { item: "木手串/绿松石", color: "m-green", desc: "补木" },
+            "水": { item: "海蓝宝/黑曜石", color: "m-blue", desc: "补水" },
+            "火": { item: "红绳/紫水晶", color: "m-purple", desc: "补火" },
+            "土": { item: "黄玉/陶瓷", color: "m-clay", desc: "补土" }
         };
 
-        function calculateDestiny(dateStr) {
-            // 算法：(出生年+月+日 + 今日日期) % 5 = 今日对应元素
-            const birth = new Date(dateStr);
-            const today = new Date();
-            
-            // 如果日期无效，返回默认
-            if(isNaN(birth.getTime())) return ELEMENT_CONFIG[2];
+        function getZodiac(day, month) {
+            const dates = [20, 19, 21, 20, 21, 22, 23, 23, 23, 24, 22, 22];
+            return ZODIAC_SIGNS[month - (day < dates[month - 1] ? 1 : 0)];
+        }
 
-            const seed = birth.getFullYear() + birth.getMonth() + birth.getDate() + today.getDate();
-            const index = seed % 5;
+        // 模拟紫微/八字推算五行缺补
+        function calculateProfile(data) {
+            const birth = new Date(data.date);
+            const year = birth.getFullYear();
+            const lastDigit = year % 10;
             
+            // 天干推算五行 (简化版)
+            // 0,1=金, 2,3=水, 4,5=木, 6,7=火, 8,9=土
+            const elements = ["金", "金", "水", "水", "木", "木", "火", "火", "土", "土"];
+            const mainElement = elements[lastDigit]; 
+            
+            // 互补逻辑：缺什么补什么 (简单的反向逻辑)
+            const lackingMap = { "金": "木", "木": "土", "土": "水", "水": "火", "火": "金" };
+            const lackingElement = lackingMap[mainElement];
+
+            const zodiac = getZodiac(birth.getDate(), birth.getMonth() + 1);
+            
+            // 生成性格关键词
+            let keywords = ["敏感", "直觉"];
+            if (data.mbti && data.mbti.includes("E")) keywords = ["能量", "连接"];
+            if (mainElement === "火") keywords.push("热情");
+            if (mainElement === "水") keywords.push("智慧");
+
             return {
-                ...ELEMENT_CONFIG[index],
-                luckyNumber: (seed % 9) + 1,
+                zodiac,
+                element: mainElement, // 本命
+                lacking: lackingElement, // 喜用
+                recommendation: ELEMENT_ITEMS[lackingElement],
+                keywords: keywords,
+                soulColor: ELEMENT_ITEMS[lackingElement].color
             };
         }
 
-        // --- 2. 视觉组件: 流体背景 ---
-        const LuckyBackground = ({ themeHex = '#E0E5DF', children }) => {
-            return (
-                <div className="relative w-full h-screen overflow-hidden bg-morandi-shell transition-colors duration-1000">
-                    <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob" style={{ backgroundColor: themeHex, animationDelay: '0s' }}></div>
-                    <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-morandi-oat mix-blend-multiply filter blur-[80px] opacity-60 animate-blob" style={{ animationDelay: '2s' }}></div>
-                    <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-morandi-mist mix-blend-multiply filter blur-[100px] opacity-50 animate-blob" style={{ animationDelay: '4s' }}></div>
-                    <div className="relative z-10 w-full h-full flex flex-col">{children}</div>
-                </div>
-            );
-        };
-
-        // --- 3. IP组件: Nari (纯CSS绘制) ---
-        const NariAvatar = ({ state = 'meditating', size = 'md', onClick }) => {
-            const sizeClass = size === 'lg' ? 'w-48 h-48' : (size === 'sm' ? 'w-16 h-16' : 'w-32 h-32');
+        // --- 🐶 组件: Nari 2.0 (超级可爱版) ---
+        const Nari = ({ state = 'idle', size = 'md' }) => {
+            const px = size === 'lg' ? 160 : (size === 'sm' ? 60 : 100);
             
             return (
-                <div className={`${sizeClass} relative cursor-pointer group transition-transform duration-300 active:scale-95`} onClick={onClick}>
-                    <div className="w-full h-full animate-float relative flex items-center justify-center">
-                        {/* 头部 */}
-                        <div className="w-[80%] h-[80%] bg-nari-black nari-head shadow-xl relative overflow-hidden border-2 border-nari-silver/20 z-10">
-                            {/* 眉毛 */}
-                            <div className="absolute top-[25%] left-0 w-full flex justify-center gap-3 px-2">
-                                <div className="w-[35%] h-3 bg-nari-silver nari-eyebrow transform rotate-12 shadow-sm"></div>
-                                <div className="w-[35%] h-3 bg-nari-silver nari-eyebrow transform -rotate-12 shadow-sm"></div>
-                            </div>
-                            {/* 眼睛 */}
-                            <div className="absolute top-[48%] left-0 w-full flex justify-center gap-6">
-                                {state === 'meditating' ? (
-                                    <><div className="w-4 h-1 bg-gray-600 rounded-full"></div><div className="w-4 h-1 bg-gray-600 rounded-full"></div></>
-                                ) : (
-                                    <><div className="w-3 h-3 bg-white rounded-full animate-pulse"></div><div className="w-3 h-3 bg-white rounded-full animate-pulse"></div></>
-                                )}
-                            </div>
-                            {/* 胡子 */}
-                            <div className="absolute bottom-[-10%] left-[10%] w-[80%] h-[45%] bg-nari-silver rounded-t-[30px]"></div>
+                <div className="relative animate-float" style={{ width: px, height: px }}>
+                    {/* 耳朵 */}
+                    <div className="absolute top-0 left-0 w-[35%] h-[40%] bg-nari-silver nari-ear-l shadow-sm origin-bottom-right animate-wiggle"></div>
+                    <div className="absolute top-0 right-0 w-[35%] h-[40%] bg-nari-silver nari-ear-r shadow-sm origin-bottom-left animate-wiggle" style={{animationDelay: '1s'}}></div>
+                    
+                    {/* 头 */}
+                    <div className="absolute top-[15%] left-[10%] w-[80%] h-[75%] bg-nari-black rounded-[40%] shadow-xl flex flex-col items-center overflow-hidden">
+                        
+                        {/* 眉毛 */}
+                        <div className="flex gap-4 mt-6 z-20">
+                            <div className="w-8 h-3 bg-nari-silver rounded-full rotate-12"></div>
+                            <div className="w-8 h-3 bg-nari-silver rounded-full -rotate-12"></div>
                         </div>
-                        {/* 特效 */}
-                        {state === 'meditating' && <div className="absolute inset-0 border-2 border-white/40 rounded-full animate-breathe opacity-50"></div>}
-                        {state === 'happy' && <div className="absolute top-0 right-0 text-3xl animate-bounce">✨</div>}
-                    </div>
-                </div>
-            );
-        };
 
-        // --- 4. 页面视图组件 ---
+                        {/* 眼睛 (带眨眼) */}
+                        <div className="flex gap-6 mt-3 z-20 animate-blink">
+                             {state === 'happy' ? (
+                                <><div className="text-white text-xl">^</div><div className="text-white text-xl">^</div></>
+                             ) : (
+                                <>
+                                    <div className="w-3 h-3 bg-white rounded-full shadow-[0_0_5px_white]"></div>
+                                    <div className="w-3 h-3 bg-white rounded-full shadow-[0_0_5px_white]"></div>
+                                </>
+                             )}
+                        </div>
 
-        // View 1: 首页
-        const HomeView = ({ onStart }) => {
-            return (
-                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-8 animate-fade-in">
-                    <div>
-                        <h1 className="text-5xl font-serif text-nari-black tracking-widest mb-2">Lucky Day</h1>
-                        <p className="text-xs text-gray-500 uppercase tracking-[0.4em]">Web3 Spiritual Sanctuary</p>
+                        {/* 鼻子 */}
+                        <div className="w-4 h-3 bg-black rounded-full mt-1 z-20"></div>
+
+                        {/* 腮红 */}
+                        {state === 'happy' && (
+                            <>
+                                <div className="absolute top-[45%] left-2 w-4 h-2 bg-nari-accent opacity-60 rounded-full blur-[2px]"></div>
+                                <div className="absolute top-[45%] right-2 w-4 h-2 bg-nari-accent opacity-60 rounded-full blur-[2px]"></div>
+                            </>
+                        )}
+
+                        {/* 大胡子 */}
+                        <div className="absolute bottom-[-10%] w-full h-[55%] bg-nari-silver nari-mustache z-10"></div>
                     </div>
                     
-                    <div onClick={onStart}>
-                        <NariAvatar state="meditating" size="lg" />
-                    </div>
-
-                    <button onClick={onStart} className="relative group mt-8">
-                        <div className="absolute inset-0 bg-gradient-to-r from-morandi-sage to-morandi-haze rounded-full blur opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
-                        <div className="relative px-10 py-4 glass-card rounded-full text-gray-700 font-serif tracking-widest hover:scale-105 transition-transform duration-300">
-                            Connect & Breathe
-                        </div>
-                    </button>
-                    <p className="absolute bottom-10 text-[10px] text-gray-400">Powered by Nari & Ethereum</p>
+                    {/* 对话气泡特效 */}
+                    {state === 'thinking' && <div className="absolute -top-4 -right-4 text-2xl animate-bounce">💭</div>}
+                    {state === 'happy' && <div className="absolute -top-4 -right-4 text-2xl animate-bounce">✨</div>}
                 </div>
             );
         };
 
-        // View 2: 生日录入页 (新增)
-        const OnboardingView = ({ onComplete }) => {
-            const [date, setDate] = useState('');
+        // --- 📱 页面: 输入页 (Input View) ---
+        const InputView = ({ onNext }) => {
+            const [form, setForm] = useState({ name: '', date: '', time: '', location: '', mbti: '' });
 
             const handleSubmit = () => {
-                if (!date) return alert("请告诉 Nari 你的破壳日 🎂 以便连接能量");
-                // 模拟一个加载过程
-                setTimeout(() => onComplete(date), 500);
+                if(!form.name || !form.date || !form.location) return alert("请填写必填项哦，Nari 找不到你的坐标 ✨");
+                onNext(form);
             };
 
             return (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-                    <div className="mb-6">
-                        <NariAvatar state="happy" size="md" />
+                <div className="h-full flex flex-col items-center justify-center p-6 animate-pop">
+                    <div className="mb-6"><Nari state="idle" size="lg" /></div>
+                    <h1 className="text-2xl font-cute text-gray-700 mb-1">Hi, 我是 Nari</h1>
+                    <p className="text-xs text-gray-500 mb-6">输入你的时空坐标，开启治愈之旅</p>
+
+                    <div className="w-full glass p-6 flex flex-col gap-4">
+                        <input type="text" placeholder="你的名字 / 昵称 (必填)" className="w-full p-3 rounded-xl input-glass outline-none text-center font-serif text-sm"
+                            onChange={e => setForm({...form, name: e.target.value})} />
+                        
+                        <div className="flex gap-2">
+                            <input type="date" className="flex-1 p-3 rounded-xl input-glass outline-none text-center text-gray-500 text-sm"
+                                onChange={e => setForm({...form, date: e.target.value})} />
+                            <input type="time" className="flex-1 p-3 rounded-xl input-glass outline-none text-center text-gray-500 text-sm"
+                                onChange={e => setForm({...form, time: e.target.value})} />
+                        </div>
+
+                        <input type="text" placeholder="出生地点 (必填, 如: 上海)" className="w-full p-3 rounded-xl input-glass outline-none text-center font-serif text-sm"
+                            onChange={e => setForm({...form, location: e.target.value})} />
+
+                        <select className="w-full p-3 rounded-xl input-glass outline-none text-center text-gray-500 text-sm bg-transparent"
+                             onChange={e => setForm({...form, mbti: e.target.value})}>
+                            <option value="">MBTI 人格 (选填)</option>
+                            {MBTI_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+
+                        <button onClick={handleSubmit} className="mt-2 w-full py-3 bg-nari-black text-white rounded-xl font-serif tracking-widest shadow-lg active:scale-95 transition-transform">
+                            开始测算
+                        </button>
                     </div>
-                    <h2 className="text-2xl font-serif text-gray-700 mb-2">当你来到这个星球...</h2>
-                    <p className="text-xs text-gray-500 mb-8">Nari 需要这个时间坐标来计算今日能量</p>
-                    
-                    <div className="w-full max-w-xs relative mb-8">
-                        <input 
-                            type="date" 
-                            onChange={(e) => setDate(e.target.value)}
-                            className="w-full p-4 rounded-xl bg-white/40 border border-white/60 text-center text-gray-700 font-serif text-lg focus:outline-none focus:ring-2 focus:ring-morandi-haze shadow-inner"
-                        />
+                </div>
+            );
+        };
+
+        // --- 🔮 页面: 核心画像页 (Profile View) ---
+        const ProfileView = ({ user, profile, setView }) => {
+            return (
+                <div className="h-full flex flex-col pt-12 px-6 pb-6 animate-pop overflow-y-auto">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 className="text-xl font-serif font-bold text-gray-800">{user.name} 的能量场</h2>
+                            <p className="text-xs text-gray-500">{user.location} · {profile.zodiac} · {user.mbti || '未知星系'}</p>
+                        </div>
+                        <Nari state="happy" size="sm" />
                     </div>
-                    
-                    <button onClick={handleSubmit} className="w-full max-w-xs py-4 rounded-xl bg-nari-black text-white font-serif tracking-widest shadow-lg hover:scale-[1.02] transition-transform">
-                        开始测算
+
+                    {/* 核心卡片 */}
+                    <div className={`glass p-6 mb-6 relative overflow-hidden bg-${profile.soulColor}/20`}>
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/40 rounded-full blur-2xl -mr-8 -mt-8"></div>
+                        
+                        <div className="text-center mb-6">
+                            <p className="text-sm text-gray-500 mb-2">你的本命特质</p>
+                            <h3 className="text-3xl font-cute text-gray-700 mb-1">
+                                {profile.keywords.join(" · ")}
+                            </h3>
+                            <div className="h-1 w-12 bg-gray-300 mx-auto rounded-full mt-3"></div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/50 p-3 rounded-xl text-center">
+                                <span className="text-[10px] text-gray-400 block mb-1">五行喜用</span>
+                                <span className="text-lg font-serif text-nari-black">补{profile.lacking}</span>
+                            </div>
+                            <div className="bg-white/50 p-3 rounded-xl text-center">
+                                <span className="text-[10px] text-gray-400 block mb-1">灵魂守护</span>
+                                <span className="text-sm font-serif text-nari-black leading-6">{profile.recommendation.item}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 导航按钮 */}
+                    <div className="grid grid-cols-2 gap-4 mt-auto">
+                        <button onClick={() => setView('daily')} className="glass p-5 flex flex-col items-center justify-center active:scale-95 transition">
+                            <span className="text-2xl mb-2">📅</span>
+                            <span className="font-serif font-bold text-gray-700">今日运势</span>
+                            <span className="text-[10px] text-gray-400 mt-1">宜忌 · 幸运色</span>
+                        </button>
+                        <button onClick={() => setView('match')} className="glass p-5 flex flex-col items-center justify-center active:scale-95 transition">
+                            <span className="text-2xl mb-2">💞</span>
+                            <span className="font-serif font-bold text-gray-700">缘分测试</span>
+                            <span className="text-[10px] text-gray-400 mt-1">好友 · 恋人</span>
+                        </button>
+                    </div>
+
+                    <p className="text-center text-[10px] text-gray-400 mt-8">Based on Zhouyi & Cosmic Data</p>
+                </div>
+            );
+        };
+
+        // --- 📅 页面: 今日运势 (Daily View) ---
+        const DailyView = ({ profile, setView }) => {
+            const today = new Date();
+            // 治愈话术库
+            const healQuotes = [
+                "允许自己慢下来，像植物一样光合作用。",
+                "今天的幸运藏在微风里，记得深呼吸。",
+                "不要焦虑，你的能量正在积蓄中。",
+                "世界很吵，但你可以把心调成静音模式。",
+                "你不需要时刻完美，现在的你就很好。"
+            ];
+            const quote = healQuotes[today.getDate() % healQuotes.length];
+
+            return (
+                <div className="h-full flex flex-col pt-8 px-6 animate-pop">
+                    <button onClick={() => setView('profile')} className="text-sm text-gray-400 mb-4 flex items-center gap-1">
+                        <LucideIcon name="arrow-left" size={14} /> 返回画像
                     </button>
-                </div>
-            );
-        };
-
-        // View 3: 运势结果页
-        const DailyView = ({ fortune, setView }) => {
-            return (
-                <div className="flex-1 flex flex-col items-center pt-10 pb-10 px-6 overflow-y-auto animate-fade-in">
-                    {/* 导航栏 */}
-                    <div className="w-full flex justify-between items-center max-w-md mb-6">
-                        <button onClick={() => setView('home')} className="text-sm text-gray-500 font-serif hover:text-gray-800">← Exit</button>
-                        <button onClick={() => setView('resonance')} className="px-3 py-1 bg-white/40 rounded-full text-xs text-gray-600 font-serif hover:bg-white/60 transition shadow-sm">
-                            Energy Sync ✨
-                        </button>
+                    
+                    <div className="text-center mb-6">
+                        <h2 className="text-2xl font-serif text-gray-800">今日能量指引</h2>
+                        <p className="text-xs text-gray-500 mt-1">{today.toDateString()}</p>
                     </div>
 
-                    <div className="mb-[-20px] z-20">
-                        <NariAvatar state="happy" size="md" />
-                    </div>
-
-                    {/* 卡片主体 */}
-                    <div className="w-full max-w-md glass-card rounded-[32px] p-8 flex flex-col items-center text-center z-10">
-                        <div className="text-xs text-gray-400 mb-4 tracking-widest uppercase">
-                            {new Date().toDateString()}
-                        </div>
-
-                        <h2 className="text-4xl font-serif text-nari-black mb-6 animate-pulse">
-                            {fortune.vibe}
-                        </h2>
-
-                        <p className="text-gray-600 leading-relaxed font-serif text-sm mb-8 opacity-90">
-                            “{fortune.advice}”
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-4 w-full mb-6">
-                            <div className="p-4 bg-white/50 rounded-2xl flex flex-col items-center">
-                                <span className="text-[10px] text-gray-400 uppercase mb-1">Color</span>
-                                <div className={`w-8 h-8 rounded-full ${fortune.color} border border-white/50 shadow-sm mb-1`}></div>
-                                <span className="text-xs text-gray-500">莫兰迪色</span>
-                            </div>
-                            <div className="p-4 bg-white/50 rounded-2xl flex flex-col items-center justify-center">
-                                <span className="text-[10px] text-gray-400 uppercase mb-1">Number</span>
-                                <span className="text-2xl font-serif text-gray-700">{fortune.luckyNumber}</span>
-                            </div>
-                        </div>
-
-                        <button className="w-full py-3 rounded-xl bg-nari-black text-nari-silver font-sans text-sm tracking-wide shadow-lg hover:bg-gray-800 transition-colors">
-                            Share My Lucky Day
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        // View 4: 能量共鸣页
-        const ResonanceView = ({ setView }) => {
-            const [step, setStep] = useState(0); 
-            // 0: Input, 1: Fusing, 2: Result
-
-            const startFusion = () => {
-                setStep(1);
-                setTimeout(() => setStep(2), 2500);
-            };
-
-            return (
-                <div className="absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center animate-fade-in">
-                    <button onClick={() => setView('daily')} className="absolute top-8 right-8 text-2xl text-gray-400 font-serif">×</button>
-
-                    <div className="relative w-full h-[50vh] flex items-center justify-center">
-                        {/* 左球 */}
-                        <div className={`absolute w-32 h-32 rounded-full blur-2xl opacity-80 bg-morandi-haze transition-all duration-[2000ms] ease-in-out ${step >= 1 ? 'translate-x-0 scale-150' : '-translate-x-24'}`}></div>
-                        {/* 右球 */}
-                        <div className={`absolute w-32 h-32 rounded-full blur-2xl opacity-80 bg-morandi-oat transition-all duration-[2000ms] ease-in-out ${step >= 1 ? 'translate-x-0 scale-150' : 'translate-x-24'}`}></div>
-
-                        {/* 结果显示 */}
-                        {step === 2 && (
-                            <div className="z-20 text-center animate-fade-in flex flex-col items-center mt-32">
-                                <div className="flex justify-center items-center mb-4">
-                                     <NariAvatar state="happy" size="sm" />
-                                     <div className="-ml-4 transform scale-x-[-1] opacity-80"><NariAvatar state="happy" size="sm" /></div>
-                                </div>
-                                <h2 className="text-3xl font-serif text-gray-700 mb-2">Soul Sync</h2>
-                                <p className="text-gray-500 font-light text-sm max-w-xs mx-auto px-6">
-                                    "像微风遇到了云朵，<br/>你们的能量在今日达到了完美的平衡。"
+                    <div className="glass p-8 flex flex-col items-center text-center relative overflow-hidden">
+                        <div className={`absolute inset-0 bg-${profile.recommendation.color}/10 z-0`}></div>
+                        <div className="relative z-10">
+                            <Nari state="thinking" size="sm" />
+                            <div className="my-6">
+                                <p className="text-gray-600 font-serif leading-relaxed italic opacity-80">
+                                    “{quote}”
                                 </p>
-                                <div className="mt-4 px-4 py-1 rounded-full bg-morandi-sage/30 text-xs text-gray-600">
-                                    Resonance Color: Celadon
+                            </div>
+                            
+                            <div className="w-full h-px bg-gray-200 my-4"></div>
+
+                            <div className="flex justify-between w-full px-4">
+                                <div className="text-center">
+                                    <div className={`w-8 h-8 rounded-full bg-${profile.recommendation.color} mx-auto mb-2 border-2 border-white shadow-sm`}></div>
+                                    <span className="text-xs text-gray-500">幸运色</span>
+                                </div>
+                                <div className="text-center">
+                                    <div className="h-8 flex items-center justify-center font-serif text-xl text-gray-700 font-bold mb-2">
+                                        {(today.getDate() + 3) % 9 + 1}
+                                    </div>
+                                    <span className="text-xs text-gray-500">幸运数</span>
+                                </div>
+                                <div className="text-center">
+                                    <div className="h-8 flex items-center justify-center font-serif text-lg text-gray-700 mb-2">
+                                        南方
+                                    </div>
+                                    <span className="text-xs text-gray-500">财位</span>
                                 </div>
                             </div>
-                        )}
-                    </div>
-
-                    <div className="absolute bottom-16 w-full px-8">
-                        {step === 0 ? (
-                            <div className="flex flex-col gap-4 animate-fade-in">
-                                <p className="text-center text-xs text-gray-400 uppercase tracking-widest">Connect Energies</p>
-                                <input type="text" placeholder="输入好友名字 / ENS" className="w-full p-4 rounded-xl bg-gray-100 text-center font-serif focus:outline-none focus:ring-1 focus:ring-morandi-haze" />
-                                <button onClick={startFusion} className="w-full py-4 rounded-xl bg-nari-black text-white font-serif tracking-widest shadow-lg hover:scale-[1.02] transition-transform">
-                                    开始共鸣
-                                </button>
-                            </div>
-                        ) : step === 2 ? (
-                            <button onClick={() => setStep(0)} className="w-full py-4 rounded-xl border border-gray-300 text-gray-500 font-serif hover:bg-gray-50">
-                                测算另一位好友
-                            </button>
-                        ) : null}
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        // --- 5. 主程序 ---
-        const App = () => {
-            const [view, setView] = useState('home'); 
-            const [fortune, setFortune] = useState(null);
+        // --- 💞 页面: 缘分测试 (Match View) ---
+        const MatchView = ({ userProfile, setView }) => {
+            const [friendData, setFriendData] = useState({ name: '', mbti: '' });
+            const [result, setResult] = useState(null);
 
-            // 流程逻辑
-            const startFlow = () => setView('onboarding'); // 首页 -> 去输入
-            
-            const handleBirthdaySubmit = (dateStr) => {
-                const data = calculateDestiny(dateStr); // 真实计算
-                setFortune(data);
-                setView('daily'); // 输入 -> 看结果
+            const calculateMatch = () => {
+                if(!friendData.name) return;
+                // 模拟匹配逻辑
+                setResult({
+                    score: 90 + Math.floor(Math.random() * 10), // 只要测算都是好缘分
+                    desc: "你们是微风与云朵的相遇，彼此滋养，同频共振。",
+                    tag: "灵魂共鸣"
+                });
             };
 
             return (
-                <LuckyBackground themeHex={fortune ? fortune.hex : '#E0E5DF'}>
-                    {view === 'home' && <HomeView onStart={startFlow} />}
-                    {view === 'onboarding' && <OnboardingView onComplete={handleBirthdaySubmit} />}
-                    {view === 'daily' && <DailyView fortune={fortune} setView={setView} />}
-                    {view === 'resonance' && <ResonanceView setView={setView} />}
-                </LuckyBackground>
+                <div className="h-full flex flex-col pt-8 px-6 animate-pop">
+                    <button onClick={() => setView('profile')} className="text-sm text-gray-400 mb-4 flex items-center gap-1">
+                        <LucideIcon name="arrow-left" size={14} /> 返回画像
+                    </button>
+
+                    <div className="text-center mb-8">
+                        <h2 className="text-2xl font-serif text-gray-800">缘分共鸣测试</h2>
+                        <p className="text-xs text-gray-500 mt-1">看看你们的能量场是否契合</p>
+                    </div>
+
+                    {!result ? (
+                        <div className="glass p-6 flex flex-col gap-4">
+                            <div className="flex justify-center items-center gap-4 mb-4">
+                                <div className={`w-12 h-12 rounded-full bg-${userProfile.soulColor} flex items-center justify-center text-xs text-gray-600`}>我</div>
+                                <span className="text-gray-400">+</span>
+                                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-400">Ta</div>
+                            </div>
+                            <input type="text" placeholder="对方的名字" className="p-3 rounded-xl input-glass outline-none text-center text-sm"
+                                onChange={e => setFriendData({...friendData, name: e.target.value})} />
+                             <select className="p-3 rounded-xl input-glass outline-none text-center text-gray-500 text-sm bg-transparent"
+                                onChange={e => setFriendData({...friendData, mbti: e.target.value})}>
+                                <option value="">对方的 MBTI (选填)</option>
+                                {MBTI_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                            <button onClick={calculateMatch} className="mt-2 py-3 bg-nari-accent/80 text-white rounded-xl font-serif shadow-lg">
+                                开始连接
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="glass p-8 flex flex-col items-center text-center animate-pop">
+                            <div className="flex -space-x-4 mb-6">
+                                <Nari state="happy" size="sm" />
+                                <div className="transform scale-x-[-1] opacity-80"><Nari state="happy" size="sm" /></div>
+                            </div>
+                            <h3 className="text-4xl font-cute text-nari-accent mb-2">{result.score}%</h3>
+                            <div className="px-3 py-1 bg-nari-accent/20 text-nari-accent text-xs rounded-full mb-6">
+                                {result.tag}
+                            </div>
+                            <p className="text-gray-600 font-serif text-sm leading-relaxed">
+                                {result.desc}
+                            </p>
+                            <button onClick={() => setResult(null)} className="mt-8 text-xs text-gray-400 underline">
+                                测算下一位
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // 辅助组件：Lucide 图标
+        const LucideIcon = ({ name, size = 16, color = "currentColor" }) => {
+            useEffect(() => lucide.createIcons(), []);
+            return <i data-lucide={name} style={{ width: size, height: size, color: color }}></i>;
+        };
+
+        // --- 🚀 主程序 (App Root) ---
+        const App = () => {
+            const [view, setView] = useState('input'); // input -> profile -> daily/match
+            const [user, setUser] = useState(null);
+            const [profile, setProfile] = useState(null);
+
+            const handleNext = (formData) => {
+                setUser(formData);
+                const result = calculateProfile(formData);
+                setProfile(result);
+                // 模拟加载
+                setTimeout(() => setView('profile'), 500);
+            };
+
+            return (
+                <div className="w-full h-screen bg-m-bg relative overflow-hidden">
+                    {/* 背景流体球 */}
+                    <div className="absolute top-[-10%] left-[-10%] w-[300px] h-[300px] rounded-full bg-m-pink opacity-40 blur-[60px] animate-float"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[250px] h-[250px] rounded-full bg-m-green opacity-30 blur-[60px] animate-float" style={{animationDelay: '2s'}}></div>
+
+                    <div className="relative z-10 w-full h-full max-w-md mx-auto shadow-2xl bg-white/30 backdrop-blur-sm">
+                        {view === 'input' && <InputView onNext={handleNext} />}
+                        {view === 'profile' && <ProfileView user={user} profile={profile} setView={setView} />}
+                        {view === 'daily' && <DailyView profile={profile} setView={setView} />}
+                        {view === 'match' && <MatchView userProfile={profile} setView={setView} />}
+                    </div>
+                </div>
             );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
-    </script>
-    
-    <script>
-        // 初始化图标
-        lucide.createIcons();
     </script>
 </body>
 </html>
