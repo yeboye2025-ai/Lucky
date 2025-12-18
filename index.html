@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucky Day | Web3 情绪疗愈</title>
+    
+    <!-- 引入字体: Noto Serif -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel (用于解析 JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 图标库 Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind 配置 (莫兰迪色系) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        morandi: {
+                            mist: "#E0E5DF",
+                            clay: "#E6DCCA",
+                            sage: "#BCE2D1",
+                            haze: "#B0C4DE",
+                            dusty: "#D8BFD8",
+                            oat: "#F5DEB3",
+                            shell: "#FFF5EE"
+                        },
+                        nari: {
+                            black: "#2D2D2D",
+                            silver: "#E5E7EB",
+                            sparkle: "#FCD34D"
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif SC"', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'breathe': 'breathe 4s ease-in-out infinite',
+                        'blob': 'blob 10s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+                            '50%': { transform: 'scale(1.05)', opacity: '1' },
+                        },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 全局样式微调 */
+        body { margin: 0; overflow: hidden; -webkit-font-smoothing: antialiased; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        /* Nari 纯CSS绘图样式 */
+        .nari-head { border-radius: 40% 40% 45% 45%; }
+        .nari-eyebrow { border-radius: 999px; }
+    </style>
+</head>
+<body class="bg-morandi-mist text-gray-700 font-serif">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- 1. 核心算法模拟 (Astrology Logic) ---
+        const ELEMENT_MAP = {
+            Wood: { color: 'bg-morandi-sage', hex: '#BCE2D1', vibe: '生长', advice: '像树木一样舒展，今日宜做长远规划。' },
+            Fire: { color: 'bg-morandi-dusty', hex: '#D8BFD8', vibe: '热情', advice: '微光点亮黑夜，你的直觉今日格外敏锐。' },
+            Earth: { color: 'bg-morandi-clay', hex: '#E6DCCA', vibe: '稳重', advice: '大地给予承托，适合处理积压的事务。' },
+            Metal: { color: 'bg-morandi-mist', hex: '#E0E5DF', vibe: '纯粹', advice: '极简中的秩序，清理一下数字资产吧。' },
+            Water: { color: 'bg-morandi-haze', hex: '#B0C4DE', vibe: '智慧', advice: '静水流深，适合在流动性中寻找机会。' },
+        };
+
+        function calculateFortune(address) {
+            // 简单模拟：根据地址最后一位判断
+            const seeds = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+            const random = Math.floor(Math.random() * 5);
+            const key = seeds[random];
+            return {
+                ...ELEMENT_MAP[key],
+                luckyNumber: Math.floor(Math.random() * 9) + 1,
+            };
+        }
+
+        // --- 2. 视觉组件: 流体背景 (LuckyBackground) ---
+        const LuckyBackground = ({ themeHex = '#E0E5DF', children }) => {
+            return (
+                <div className="relative w-full h-screen overflow-hidden bg-morandi-shell transition-colors duration-1000">
+                    {/* 动态 Blob 1 */}
+                    <div 
+                        className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"
+                        style={{ backgroundColor: themeHex, animationDelay: '0s' }}
+                    ></div>
+                    {/* 动态 Blob 2 */}
+                    <div 
+                        className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-morandi-oat mix-blend-multiply filter blur-[80px] opacity-60 animate-blob"
+                        style={{ animationDelay: '2s' }}
+                    ></div>
+                    {/* 动态 Blob 3 */}
+                    <div 
+                        className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-morandi-mist mix-blend-multiply filter blur-[100px] opacity-50 animate-blob"
+                        style={{ animationDelay: '4s' }}
+                    ></div>
+                    
+                    <div className="relative z-10 w-full h-full flex flex-col">{children}</div>
+                </div>
+            );
+        };
+
+        // --- 3. IP组件: Nari (纯代码绘制黑银雪纳瑞) ---
+        const NariAvatar = ({ state = 'meditating', size = 'md', onClick }) => {
+            const sizeClass = size === 'lg' ? 'w-48 h-48' : (size === 'sm' ? 'w-16 h-16' : 'w-32 h-32');
+            
+            return (
+                <div className={`${sizeClass} relative cursor-pointer group`} onClick={onClick}>
+                    {/* 悬浮动画容器 */}
+                    <div className="w-full h-full animate-float relative flex items-center justify-center">
+                        
+                        {/* 头部主体 */}
+                        <div className="w-[80%] h-[80%] bg-nari-black nari-head shadow-xl relative overflow-hidden border-2 border-nari-silver/20 z-10">
+                            
+                            {/* 眉毛 (标志性特征) */}
+                            <div className="absolute top-[25%] left-0 w-full flex justify-center gap-3 px-2">
+                                <div className="w-[35%] h-3 bg-nari-silver nari-eyebrow transform rotate-12 shadow-sm"></div>
+                                <div className="w-[35%] h-3 bg-nari-silver nari-eyebrow transform -rotate-12 shadow-sm"></div>
+                            </div>
+
+                            {/* 眼睛 */}
+                            <div className="absolute top-[48%] left-0 w-full flex justify-center gap-6">
+                                {state === 'meditating' ? (
+                                    <>
+                                        <div className="w-4 h-1 bg-gray-600 rounded-full"></div>
+                                        <div className="w-4 h-1 bg-gray-600 rounded-full"></div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                                        <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* 胡子 (银色大胡子) */}
+                            <div className="absolute bottom-[-10%] left-[10%] w-[80%] h-[45%] bg-nari-silver rounded-t-[30px]"></div>
+                        </div>
+
+                        {/* 冥想光环 */}
+                        {state === 'meditating' && (
+                            <div className="absolute inset-0 border-2 border-white/40 rounded-full animate-breathe opacity-50"></div>
+                        )}
+                        
+                        {/* 开心星星 */}
+                        {state === 'happy' && (
+                            <div className="absolute top-0 right-0 text-3xl animate-bounce">✨</div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 4. 页面组件 ---
+
+        // 首页
+        const HomeView = ({ onLogin }) => {
+            const [isBreathing, setIsBreathing] = useState(true);
+
+            const handleConnect = () => {
+                setIsBreathing(false);
+                // 模拟连接延迟
+                setTimeout(() => onLogin(), 1500);
+            };
+
+            return (
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-8">
+                    <div className="animate-in fade-in zoom-in duration-1000">
+                        <h1 className="text-5xl font-serif text-nari-black tracking-widest mb-2">Lucky Day</h1>
+                        <p className="text-xs text-gray-500 uppercase tracking-[0.4em]">Web3 Spiritual Sanctuary</p>
+                    </div>
+
+                    <div onClick={handleConnec
